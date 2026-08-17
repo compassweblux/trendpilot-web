@@ -23,18 +23,21 @@ Dann http://127.0.0.1:8080 im Browser oeffnen.
 from __future__ import annotations
 
 import os
+import json
 import hmac
+import base64
 import random
 import hashlib
 import secrets
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from pydantic import BaseModel
 
 HERE = Path(__file__).resolve().parent
 
@@ -60,6 +63,20 @@ DOWNLOAD_ZIP = HERE / "downloads" / "US100-Bot.zip"
 DOWNLOAD_URL = os.getenv(
     "DOWNLOAD_URL",
     "https://github.com/compassweblux/trendpilot-app/releases/download/v1.0.0/US100-Bot.zip")
+
+# ---- Lizenz-Signatur fuer die Abo-Pruefung (/check) ------------------------ #
+# Ed25519-Privatschluessel als Base64 der server_private.pem in der Env
+# LICENSE_PRIVATE_KEY_B64. Der Bot verifiziert die Antwort mit dem in der .exe
+# eingebetteten server_public.pem -> gefaelschte "bezahlt"-Antworten unmoeglich.
+try:
+    from cryptography.hazmat.primitives import serialization
+    _lic_b64 = os.getenv("LICENSE_PRIVATE_KEY_B64")
+    _LIC_PRIV = (serialization.load_pem_private_key(base64.b64decode(_lic_b64), password=None)
+                 if _lic_b64 else None)
+except Exception:
+    _LIC_PRIV = None
+_PRODUCT_KEY = os.getenv("PRODUCT_KEY", "")
+LICENSE_TTL_MIN = 65
 
 # Session-Secret dauerhaft ablegen (sonst wird bei jedem Neustart ausgeloggt).
 _secret_file = HERE / ".session_secret"
@@ -265,6 +282,57 @@ def download(request: Request):
         status_code=503)
 
 
+# ------------------------------------------------------------------ #
+# Abo-Pruefung fuer den Bot (Kundennummer -> signierte Antwort)
+# ------------------------------------------------------------------ #
+class CheckReq(BaseModel):
+    customer_id: str
+    machine_id: str = ""
+
+
+def _customer_paid_by_id(customer_id: str):
+    """(paid: bool, expires: datetime|None) fuer eine Kundennummer aus Neon."""
+    try:
+        with db() as conn, conn.cursor() as cur:
+            cur.execute("SELECT paid, expires FROM customers WHERE customer_id = %s",
+                        (customer_id,))
+            row = cur.fetchone()
+        if not row:
+            return False, None
+        return bool(row[0]), row[1]
+    except Exception:
+        return False, None
+
+
+@app.post("/check")
+def license_check(req: CheckReq):
+    """Prueft die Kundennummer und liefert eine SIGNIERTE Antwort. Der Bot
+    verifiziert die Signatur mit dem eingebetteten Public-Key."""
+    if _LIC_PRIV is None:
+        return {"error": "license signing not configured"}
+    paid, expires = _customer_paid_by_id(req.customer_id.strip())
+    now = datetime.now(timezone.utc)
+    valid = bool(paid)
+    reason = "bezahlt" if paid else "kein aktives Abo fuer diese Kundennummer"
+    if valid and expires:
+        exp = expires if isinstance(expires, datetime) else datetime.fromisoformat(str(expires))
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        if now > exp:
+            valid, reason = False, "Abo abgelaufen"
+    payload = {
+        "customer_id": req.customer_id, "machine_id": req.machine_id,
+        "paid": valid, "valid": valid, "reason": reason,
+        "issued_at": now.isoformat(),
+        "expires_at": (now + timedelta(minutes=LICENSE_TTL_MIN)).isoformat(),
+        "strategy_key": _PRODUCT_KEY if valid else "",
+    }
+    s = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+    return {"payload": s, "signature": _LIC_PRIV.sign(s.encode()).hex()}
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok", "db": "neon" if (DATABASE_URL and psycopg) else "keine-db"}
+    return {"status": "ok",
+            "db": "neon" if (DATABASE_URL and psycopg) else "keine-db",
+            "license": "ready" if _LIC_PRIV else "off"}
