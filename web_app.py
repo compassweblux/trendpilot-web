@@ -246,7 +246,8 @@ def account(request: Request, willkommen: int = 0):
     active, status = sub_status(rec)
     return templates.TemplateResponse(request, "account.html", ctx(
         request, rec=rec, active=active, status_text=status,
-        willkommen=bool(willkommen), download_ready=DOWNLOAD_ZIP.exists()))
+        willkommen=bool(willkommen),
+        download_ready=bool(DOWNLOAD_URL) or DOWNLOAD_ZIP.exists()))
 
 
 @app.get("/download")
