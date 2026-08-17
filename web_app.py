@@ -78,6 +78,37 @@ except Exception:
 _PRODUCT_KEY = os.getenv("PRODUCT_KEY", "")
 LICENSE_TTL_MIN = 65
 
+# ---- Stripe (Bezahlung) ---------------------------------------------------- #
+# Alle Werte als Vercel-Env-Variablen (Secret-Key NIE im Code):
+#   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+#   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_YEARLY, STRIPE_PRICE_LIFETIME
+try:
+    import stripe
+except ImportError:
+    stripe = None
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+if stripe and STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
+PLANS = {
+    "monthly":  {"price": os.getenv("STRIPE_PRICE_MONTHLY"),  "mode": "subscription", "days": 31},
+    "yearly":   {"price": os.getenv("STRIPE_PRICE_YEARLY"),   "mode": "subscription", "days": 366},
+    "lifetime": {"price": os.getenv("STRIPE_PRICE_LIFETIME"), "mode": "payment",      "days": 36500},
+}
+
+
+def stripe_ready() -> bool:
+    return bool(stripe and STRIPE_SECRET_KEY)
+
+
+def _set_paid(customer_id: str, days: int):
+    """Setzt eine Kundennummer in Neon auf bezahlt (+ Ablaufdatum)."""
+    with db() as conn, conn.cursor() as cur:
+        cur.execute(
+            "UPDATE customers SET paid = TRUE, expires = now() + (%s * interval '1 day') "
+            "WHERE customer_id = %s", (int(days), customer_id))
+        conn.commit()
+
 # Session-Secret dauerhaft ablegen (sonst wird bei jedem Neustart ausgeloggt).
 _secret_file = HERE / ".session_secret"
 SESSION_SECRET = os.getenv("SESSION_SECRET")
@@ -248,7 +279,7 @@ def logout(request: Request):
 
 
 @app.get("/account", response_class=HTMLResponse)
-def account(request: Request, willkommen: int = 0):
+def account(request: Request, willkommen: int = 0, bezahlt: int = 0):
     email = request.session.get("email")
     if not email:
         return RedirectResponse("/login", status_code=303)
@@ -263,7 +294,7 @@ def account(request: Request, willkommen: int = 0):
     active, status = sub_status(rec)
     return templates.TemplateResponse(request, "account.html", ctx(
         request, rec=rec, active=active, status_text=status,
-        willkommen=bool(willkommen),
+        willkommen=bool(willkommen), bezahlt=bool(bezahlt),
         download_ready=bool(DOWNLOAD_URL) or DOWNLOAD_ZIP.exists()))
 
 
@@ -331,8 +362,77 @@ def license_check(req: CheckReq):
     return {"payload": s, "signature": _LIC_PRIV.sign(s.encode()).hex()}
 
 
+# ------------------------------------------------------------------ #
+# Stripe: Checkout starten + Zahlungs-Webhook
+# ------------------------------------------------------------------ #
+@app.post("/subscribe")
+def subscribe(request: Request, plan: str = Form(...)):
+    email = request.session.get("email")
+    cid = request.session.get("customer_id")
+    if not email or not cid:
+        return RedirectResponse("/login", status_code=303)
+    p = PLANS.get(plan)
+    if not stripe_ready() or not p or not p["price"]:
+        return PlainTextResponse("Bezahlung ist noch nicht konfiguriert.", status_code=503)
+    base = str(request.base_url).rstrip("/")
+    try:
+        session = stripe.checkout.Session.create(
+            mode=p["mode"],
+            line_items=[{"price": p["price"], "quantity": 1}],
+            customer_email=email,
+            client_reference_id=cid,
+            metadata={"customer_id": cid, "plan": plan, "days": p["days"]},
+            subscription_data=({"metadata": {"customer_id": cid, "days": p["days"]}}
+                               if p["mode"] == "subscription" else None),
+            success_url=f"{base}/account?bezahlt=1",
+            cancel_url=f"{base}/account",
+        )
+    except Exception as e:
+        return PlainTextResponse(f"Stripe-Fehler: {e}", status_code=502)
+    return RedirectResponse(session.url, status_code=303)
+
+
+@app.post("/stripe/webhook")
+async def stripe_webhook(request: Request):
+    if not stripe_ready():
+        return PlainTextResponse("stripe off", status_code=503)
+    payload = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+    try:
+        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
+    except Exception:
+        return PlainTextResponse("invalid signature", status_code=400)
+    typ = event.get("type", "")
+    obj = event["data"]["object"]
+    try:
+        if typ == "checkout.session.completed":
+            meta = obj.get("metadata") or {}
+            cid = meta.get("customer_id") or obj.get("client_reference_id")
+            days = int(meta.get("days") or 31)
+            if cid:
+                _set_paid(cid, days)
+        elif typ == "invoice.paid":                       # Abo-Verlaengerung
+            sub_id = obj.get("subscription")
+            if sub_id:
+                sub = stripe.Subscription.retrieve(sub_id)
+                m = sub.get("metadata") or {}
+                if m.get("customer_id"):
+                    _set_paid(m["customer_id"], int(m.get("days") or 31))
+        elif typ == "customer.subscription.deleted":      # gekuendigt -> sperren
+            m = obj.get("metadata") or {}
+            if m.get("customer_id"):
+                with db() as conn, conn.cursor() as cur:
+                    cur.execute("UPDATE customers SET paid = FALSE WHERE customer_id = %s",
+                                (m["customer_id"],))
+                    conn.commit()
+    except Exception:
+        pass
+    return {"received": True}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok",
             "db": "neon" if (DATABASE_URL and psycopg) else "keine-db",
-            "license": "ready" if _LIC_PRIV else "off"}
+            "license": "ready" if _LIC_PRIV else "off",
+            "stripe": "ready" if stripe_ready() else "off"}

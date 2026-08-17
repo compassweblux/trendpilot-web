@@ -6,6 +6,9 @@
     {% if willkommen %}
       <div class="toast">✓ Konto erstellt! Deine persönliche Kundennummer steht unten — du brauchst sie später im Bot.</div>
     {% endif %}
+    {% if bezahlt %}
+      <div class="toast">✓ Zahlung erhalten! Deine Freischaltung wird verarbeitet — falls der Status noch „nicht aktiv" zeigt, in ein paar Sekunden neu laden.</div>
+    {% endif %}
 
     <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:26px">
       <div>
@@ -59,11 +62,16 @@
           </p>
           <a href="/#preise" class="btn btn-ghost btn-block">Abo verwalten</a>
         {% else %}
-          <p style="color:var(--mut); font-size:14.5px; margin-bottom:18px">
+          <p style="color:var(--mut); font-size:14.5px; margin-bottom:16px">
             Du kannst den Bot bereits herunterladen. Zum <b>Traden</b> brauchst du ein aktives Abo —
-            dann schaltet sich der Bot automatisch frei.
+            nach der Zahlung schaltet sich der Bot automatisch frei.
           </p>
-          <a href="/#preise" class="btn btn-primary btn-block btn-lg">Abo abschließen →</a>
+          <form method="post" action="/subscribe" style="display:flex; flex-direction:column; gap:9px">
+            <button name="plan" value="yearly" class="btn btn-primary btn-block btn-lg">Jährlich · 119,98 €/Monat</button>
+            <button name="plan" value="monthly" class="btn btn-ghost btn-block">Monatlich · 149,97 €</button>
+            <button name="plan" value="lifetime" class="btn btn-ghost btn-block">Lifetime · 4.999,99 € einmalig</button>
+          </form>
+          <p style="color:var(--mut2); font-size:12px; margin-top:10px">Sichere Zahlung über Stripe. Jederzeit kündbar.</p>
         {% endif %}
       </div>
     </div>
