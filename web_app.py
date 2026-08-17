@@ -392,6 +392,33 @@ def subscribe(request: Request, plan: str = Form(...)):
     return RedirectResponse(session.url, status_code=303)
 
 
+@app.post("/billing")
+def billing(request: Request):
+    """Oeffnet das Stripe-Kundenportal: Abo kuendigen, Zahlungsmittel/Rechnungen."""
+    email = request.session.get("email")
+    if not email:
+        return RedirectResponse("/login", status_code=303)
+    if not stripe_ready():
+        return PlainTextResponse("Bezahlung ist nicht konfiguriert.", status_code=503)
+    try:
+        with db() as conn, conn.cursor() as cur:
+            cur.execute("SELECT stripe_customer_id FROM customers WHERE lower(email) = lower(%s)",
+                        (email,))
+            row = cur.fetchone()
+    except Exception as e:
+        return PlainTextResponse(f"Serverfehler: {e}", status_code=500)
+    scust = row[0] if row else None
+    if not scust:
+        return PlainTextResponse(
+            "Noch kein Stripe-Abo vorhanden. Schliesse zuerst ein Abo ab.", status_code=400)
+    base = str(request.base_url).rstrip("/")
+    try:
+        sess = stripe.billing_portal.Session.create(customer=scust, return_url=f"{base}/account")
+    except Exception as e:
+        return PlainTextResponse(f"Stripe-Portal-Fehler: {e}", status_code=502)
+    return RedirectResponse(sess.url, status_code=303)
+
+
 @app.post("/stripe/webhook")
 async def stripe_webhook(request: Request):
     if not stripe_ready():
@@ -411,6 +438,12 @@ async def stripe_webhook(request: Request):
             days = int(meta.get("days") or 31)
             if cid:
                 _set_paid(cid, days)
+                scust = obj.get("customer")          # Stripe-Kundennummer merken
+                if scust:
+                    with db() as conn, conn.cursor() as cur:
+                        cur.execute("UPDATE customers SET stripe_customer_id = %s "
+                                    "WHERE customer_id = %s", (scust, cid))
+                        conn.commit()
         elif typ == "invoice.paid":                       # Abo-Verlaengerung
             sub_id = obj.get("subscription")
             if sub_id:

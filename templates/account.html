@@ -60,7 +60,10 @@
           <p style="color:var(--mut); font-size:14.5px; margin-bottom:18px">
             Dein Zugang ist aktiv: <b>{{ status_text }}</b>. Der Bot ist freigeschaltet und handelsbereit.
           </p>
-          <a href="/#preise" class="btn btn-ghost btn-block">Abo verwalten</a>
+          <form method="post" action="/billing">
+            <button class="btn btn-ghost btn-block">Abo verwalten / kündigen</button>
+          </form>
+          <p style="color:var(--mut2); font-size:12px; margin-top:10px">Kündigen, Zahlungsmittel ändern oder Rechnungen ansehen — über das sichere Stripe-Portal.</p>
         {% else %}
           <p style="color:var(--mut); font-size:14.5px; margin-bottom:16px">
             Du kannst den Bot bereits herunterladen. Zum <b>Traden</b> brauchst du ein aktives Abo —
