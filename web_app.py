@@ -55,6 +55,11 @@ except ImportError:
 DATABASE_URL = os.getenv("DATABASE_URL")
 PRODUCT_NAME = "TrendPilot"
 DOWNLOAD_ZIP = HERE / "downloads" / "US100-Bot.zip"
+# Grosse App-Datei liegt als oeffentliches GitHub-Release (Serverless-Funktionen
+# koennen 200+ MB nicht ausliefern). Per Env ueberschreibbar.
+DOWNLOAD_URL = os.getenv(
+    "DOWNLOAD_URL",
+    "https://github.com/compassweblux/trendpilot-app/releases/download/v1.0.0/US100-Bot.zip")
 
 # Session-Secret dauerhaft ablegen (sonst wird bei jedem Neustart ausgeloggt).
 _secret_file = HERE / ".session_secret"
@@ -248,12 +253,15 @@ def account(request: Request, willkommen: int = 0):
 def download(request: Request):
     if not request.session.get("email"):
         return RedirectResponse("/login", status_code=303)
-    if not DOWNLOAD_ZIP.exists():
-        return PlainTextResponse(
-            "Der Download wird gerade vorbereitet. Bitte spaeter erneut versuchen.",
-            status_code=503)
-    return FileResponse(str(DOWNLOAD_ZIP), filename="US100-Bot.zip",
-                        media_type="application/zip")
+    # Bevorzugt Weiterleitung zum gehosteten Release; lokal Fallback auf die Datei.
+    if DOWNLOAD_URL:
+        return RedirectResponse(DOWNLOAD_URL, status_code=307)
+    if DOWNLOAD_ZIP.exists():
+        return FileResponse(str(DOWNLOAD_ZIP), filename="US100-Bot.zip",
+                            media_type="application/zip")
+    return PlainTextResponse(
+        "Der Download wird gerade vorbereitet. Bitte spaeter erneut versuchen.",
+        status_code=503)
 
 
 @app.get("/health")
