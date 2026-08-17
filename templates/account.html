@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Mein Konto — {{ product }}{% endblock %}
+{% block content %}
+<section style="padding:52px 0">
+  <div class="wrap" style="max-width:900px">
+    {% if willkommen %}
+      <div class="toast">✓ Konto erstellt! Deine persönliche Kundennummer steht unten — du brauchst sie später im Bot.</div>
+    {% endif %}
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:26px">
+      <div>
+        <span class="eyebrow">Mein Konto</span>
+        <h2 style="margin-top:8px">Hallo{% if rec.name %}, {{ rec.name }}{% endif %} 👋</h2>
+        <p style="color:var(--mut)">{{ rec.email }}</p>
+      </div>
+      {% if active %}
+        <span class="badge on"><span class="dot"></span>Abo aktiv — {{ status_text }}</span>
+      {% else %}
+        <span class="badge off"><span class="dot"></span>{{ status_text }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Kundennummer -->
+    <div class="kndbox" style="margin-bottom:22px">
+      <div style="color:var(--mut); font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase">Deine Kundennummer</div>
+      <div class="knd">{{ rec.customer_id }}</div>
+      <p style="color:var(--mut); font-size:14px; margin-top:8px">
+        Diese Nummer trägst du im Bot-Dashboard unter <b>„Konto &amp; Konfiguration → Freischaltung"</b> ein.
+        Der Bot prüft damit stündlich, ob dein Abo aktiv ist.
+      </p>
+    </div>
+
+    <div class="grid g2">
+      <!-- Download -->
+      <div class="card">
+        <h3 style="font-size:19px; margin-bottom:6px">⬇️ Bot herunterladen</h3>
+        <p style="color:var(--mut); font-size:14.5px; margin-bottom:18px">
+          Das komplette Paket inkl. Desktop-App und 1-Klick-Installer. Für Windows.
+        </p>
+        {% if download_ready %}
+          <a href="/download" class="btn btn-primary btn-block btn-lg">US100-Bot.zip herunterladen</a>
+        {% else %}
+          <button class="btn btn-ghost btn-block btn-lg" disabled style="opacity:.6; cursor:default">Download wird vorbereitet …</button>
+        {% endif %}
+        <p style="color:var(--mut2); font-size:12.5px; margin-top:12px">
+          Entpacken und <b>US100Dashboard.exe</b> doppelklicken — nichts extra zu installieren,
+          die App legt beim ersten Start ein Desktop-Icon an. (Details in der <b>LIESMICH.txt</b>.)
+        </p>
+      </div>
+
+      <!-- Abo -->
+      <div class="card">
+        <h3 style="font-size:19px; margin-bottom:6px">
+          {% if active %}✅ Dein Abo{% else %}🔓 Abo aktivieren{% endif %}
+        </h3>
+        {% if active %}
+          <p style="color:var(--mut); font-size:14.5px; margin-bottom:18px">
+            Dein Zugang ist aktiv: <b>{{ status_text }}</b>. Der Bot ist freigeschaltet und handelsbereit.
+          </p>
+          <a href="/#preise" class="btn btn-ghost btn-block">Abo verwalten</a>
+        {% else %}
+          <p style="color:var(--mut); font-size:14.5px; margin-bottom:18px">
+            Du kannst den Bot bereits herunterladen. Zum <b>Traden</b> brauchst du ein aktives Abo —
+            dann schaltet sich der Bot automatisch frei.
+          </p>
+          <a href="/#preise" class="btn btn-primary btn-block btn-lg">Abo abschließen →</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Einrichtung -->
+    <div class="card" style="margin-top:22px">
+      <h3 style="font-size:19px; margin-bottom:10px">🚀 Einrichtung in 4 Schritten</h3>
+      <div class="step"><div class="n">1</div><div><b>ZIP entpacken</b><br><span style="color:var(--mut); font-size:14px">Rechtsklick → „Alle extrahieren".</span></div></div>
+      <div class="step"><div class="n">2</div><div><b>Auf deinem VPS starten</b><br><span style="color:var(--mut); font-size:14px">Auf deinem eigenen <b>Windows-VPS</b> (läuft 24/7) <b>US100Dashboard.exe</b> doppelklicken — die App richtet sich selbst ein.</span></div></div>
+      <div class="step"><div class="n">3</div><div><b>Kundennummer eintragen</b><br><span style="color:var(--mut); font-size:14px">Im Dashboard unter „Konto &amp; Konfiguration" deine Nummer <b>{{ rec.customer_id }}</b> und deine MT5-Zugangsdaten hinterlegen.</span></div></div>
+      <div class="step"><div class="n">4</div><div><b>Freischaltung prüfen &amp; starten</b><br><span style="color:var(--mut); font-size:14px">Bei aktivem Abo wird der Bot grün freigeschaltet und ist handelsbereit.</span></div></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

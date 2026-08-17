@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Anmelden — {{ product }}{% endblock %}
+{% block content %}
+<div class="auth">
+  <div class="auth-card card">
+    <h2>Willkommen zurück</h2>
+    <p class="sub">Melde dich an, um deine Kundennummer und den Download zu sehen.</p>
+    {% if error %}<div class="err">{{ error }}</div>{% endif %}
+    <form method="post" action="/login">
+      <label for="email">E-Mail-Adresse</label>
+      <input type="email" id="email" name="email" required placeholder="du@beispiel.de" autocomplete="email">
+      <label for="password">Passwort</label>
+      <input type="password" id="password" name="password" required placeholder="Dein Passwort" autocomplete="current-password">
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:22px">Anmelden</button>
+    </form>
+    <p class="muted-link">Noch kein Konto? <a href="/register">Kostenlos registrieren</a></p>
+  </div>
+</div>
+{% endblock %}

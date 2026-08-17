@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ product }}{% endblock %}</title>
+<style>
+  :root{
+    --bg:#0a0e14; --bg2:#0d1117; --card:#141b24; --card2:#1a222d;
+    --line:#242e3a; --txt:#e8eef5; --mut:#8b98a9; --mut2:#6b7787;
+    --green:#25c56a; --green2:#1a9e52; --blue:#3b82f6; --red:#f04c4c;
+    --glow:rgba(37,197,106,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    color:var(--txt); position:relative; min-height:100vh; overflow-x:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+    background:radial-gradient(120% 80% at 50% -10%, #0e1626 0%, var(--bg) 55%);
+  }
+  /* lebendiger Hintergrund: langsam driftende Farb-Orbs + feines Raster */
+  .bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+  .bgfx .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;will-change:transform}
+  .bgfx .a{width:540px;height:540px;left:-120px;top:-150px;
+    background:radial-gradient(circle,#25c56a,transparent 68%);animation:driftA 24s ease-in-out infinite}
+  .bgfx .b{width:600px;height:600px;right:-160px;top:-90px;
+    background:radial-gradient(circle,#3b82f6,transparent 68%);animation:driftB 30s ease-in-out infinite}
+  .bgfx .c{width:500px;height:500px;left:35%;bottom:-220px;
+    background:radial-gradient(circle,#0fb2a6,transparent 70%);opacity:.36;animation:driftC 34s ease-in-out infinite}
+  @keyframes driftA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,80px) scale(1.15)}}
+  @keyframes driftB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-100px,120px) scale(1.1)}}
+  @keyframes driftC{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(80px,-90px) scale(1.2)}}
+  @media(prefers-reduced-motion:reduce){.bgfx .orb{animation:none}}
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.35;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:60px 60px;
+    -webkit-mask-image:radial-gradient(130% 60% at 50% 0%, #000 0%, transparent 72%);
+    mask-image:radial-gradient(130% 60% at 50% 0%, #000 0%, transparent 72%);
+  }
+  a{color:inherit; text-decoration:none}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 24px}
+
+  /* ---- Nav ---- */
+  header{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+    background:rgba(10,14,20,.72); border-bottom:1px solid var(--line)}
+  nav{display:flex; align-items:center; justify-content:space-between; height:66px}
+  .brand{display:flex; align-items:center; gap:11px; font-weight:800; font-size:18px; letter-spacing:-.3px}
+  .brand .mark{width:30px; height:30px; border-radius:8px;
+    background:linear-gradient(135deg,var(--green),var(--green2));
+    display:grid; place-items:center; box-shadow:0 4px 16px var(--glow)}
+  .brand .mark svg{width:18px; height:18px}
+  .nav-links{display:flex; align-items:center; gap:8px}
+  .nav-links a.txt{color:var(--mut); padding:8px 12px; font-size:14px; font-weight:600; border-radius:8px}
+  .nav-links a.txt:hover{color:var(--txt); background:var(--card)}
+
+  .btn{display:inline-flex; align-items:center; gap:8px; justify-content:center;
+    font-weight:700; font-size:14px; padding:10px 18px; border-radius:10px; cursor:pointer;
+    border:1px solid transparent; transition:.16s; white-space:nowrap}
+  .btn-primary{background:linear-gradient(135deg,var(--green),var(--green2)); color:#04240f;
+    box-shadow:0 6px 20px var(--glow)}
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 28px var(--glow)}
+  .btn-ghost{background:var(--card); border-color:var(--line); color:var(--txt)}
+  .btn-ghost:hover{border-color:var(--green); color:var(--green)}
+  .btn-lg{padding:14px 26px; font-size:16px; border-radius:12px}
+  .btn-block{width:100%}
+
+  /* ---- Sections ---- */
+  section{padding:92px 0}
+  .eyebrow{color:var(--green); font-weight:800; font-size:13px; letter-spacing:2px; text-transform:uppercase}
+  h1{font-size:clamp(38px,6vw,62px); line-height:1.05; letter-spacing:-1.5px; font-weight:850}
+  h2{font-size:clamp(28px,4vw,40px); line-height:1.1; letter-spacing:-1px; font-weight:820}
+  .lead{color:var(--mut); font-size:19px; max-width:620px}
+  .grad{background:linear-gradient(120deg,#3be27f,#7cf0a6 55%,#3b82f6);
+    -webkit-background-clip:text; background-clip:text; color:transparent}
+
+  /* ---- Cards ---- */
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:26px}
+  .grid{display:grid; gap:20px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .feat .ic{width:44px; height:44px; border-radius:11px; background:var(--card2);
+    display:grid; place-items:center; font-size:22px; margin-bottom:14px; border:1px solid var(--line)}
+  .feat h3{font-size:18px; margin-bottom:6px}
+  .feat p{color:var(--mut); font-size:15px}
+
+  /* ---- Pricing ---- */
+  .price-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; align-items:stretch}
+  .plan{position:relative; display:flex; flex-direction:column}
+  .plan.feature{border-color:var(--green); box-shadow:0 0 0 1px var(--green),0 20px 60px -20px var(--glow);
+    background:linear-gradient(180deg,#16241b,var(--card))}
+  .plan .tag{position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    background:linear-gradient(135deg,var(--green),var(--green2)); color:#04240f;
+    font-size:12px; font-weight:800; padding:4px 12px; border-radius:20px; letter-spacing:.4px}
+  .plan .pname{font-weight:800; font-size:17px}
+  .plan .amt{font-size:44px; font-weight:850; letter-spacing:-1.5px; margin:10px 0 2px}
+  .plan .amt span{font-size:16px; color:var(--mut); font-weight:600}
+  .plan ul{list-style:none; margin:20px 0; display:flex; flex-direction:column; gap:11px; flex:1}
+  .plan li{display:flex; gap:10px; font-size:14.5px; color:var(--mut)}
+  .plan li b{color:var(--txt); font-weight:600}
+  .chk{color:var(--green); flex:none; font-weight:800}
+
+  /* ---- Auth forms ---- */
+  .auth{min-height:calc(100vh - 66px); display:grid; place-items:center; padding:40px 20px}
+  .auth-card{width:100%; max-width:440px}
+  .auth-card h2{font-size:26px; margin-bottom:6px}
+  .auth-card .sub{color:var(--mut); margin-bottom:24px; font-size:15px}
+  label{display:block; font-size:13px; font-weight:700; color:var(--mut); margin:14px 0 6px}
+  input[type=text],input[type=email],input[type=password]{
+    width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--txt);
+    padding:12px 14px; border-radius:10px; font-size:15px; transition:.15s}
+  input:focus{outline:none; border-color:var(--green); box-shadow:0 0 0 3px var(--glow)}
+  .err{background:rgba(240,76,76,.12); border:1px solid rgba(240,76,76,.4); color:#ff9d9d;
+    padding:11px 14px; border-radius:10px; font-size:14px; margin-bottom:6px}
+  .muted-link{color:var(--mut); font-size:14px; text-align:center; margin-top:18px}
+  .muted-link a{color:var(--green); font-weight:700}
+
+  /* ---- Account ---- */
+  .kndbox{background:linear-gradient(135deg,#0f1c14,#141b24); border:1px solid var(--green);
+    border-radius:16px; padding:24px; box-shadow:0 0 0 1px rgba(37,197,106,.2)}
+  .knd{font-family:"SF Mono",Consolas,monospace; font-size:34px; font-weight:800;
+    letter-spacing:2px; color:var(--green)}
+  .badge{display:inline-flex; align-items:center; gap:7px; font-weight:700; font-size:13px;
+    padding:6px 12px; border-radius:20px}
+  .badge.on{background:rgba(37,197,106,.15); color:var(--green); border:1px solid rgba(37,197,106,.4)}
+  .badge.off{background:rgba(240,76,76,.13); color:#ff8d8d; border:1px solid rgba(240,76,76,.4)}
+  .dot{width:8px; height:8px; border-radius:50%; background:currentColor}
+  .step{display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:none}
+  .step .n{width:26px; height:26px; border-radius:50%; background:var(--card2); border:1px solid var(--line);
+    display:grid; place-items:center; font-size:13px; font-weight:800; color:var(--green); flex:none}
+
+  .stats{display:flex; gap:40px; flex-wrap:wrap; margin-top:36px}
+  .stat b{display:block; font-size:32px; font-weight:850; letter-spacing:-1px}
+  .stat span{color:var(--mut); font-size:14px}
+
+  footer{border-top:1px solid var(--line); padding:40px 0; color:var(--mut2); font-size:13px}
+  .toast{background:rgba(37,197,106,.13); border:1px solid rgba(37,197,106,.4); color:var(--green);
+    padding:12px 16px; border-radius:12px; font-weight:600; margin-bottom:22px}
+  .disclaimer{color:var(--mut2); font-size:12.5px; max-width:760px; margin:0 auto; text-align:center}
+
+  @media(max-width:820px){
+    .g3,.g2,.price-grid{grid-template-columns:1fr}
+    section{padding:60px 0}
+    .plan.feature{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div></div>
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="/" class="brand">
+        <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M3 17l5-6 4 3 6-8" stroke="#04240f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 6h4v4" stroke="#04240f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        TrendPilot
+      </a>
+      <div class="nav-links">
+        {% if user %}
+          <a href="/account" class="txt">Mein Konto</a>
+          <a href="/logout" class="btn btn-ghost">Abmelden</a>
+        {% else %}
+          <a href="/#preise" class="txt">Preise</a>
+          <a href="/#funktionen" class="txt">Funktionen</a>
+          <a href="/login" class="txt">Anmelden</a>
+          <a href="/register" class="btn btn-primary">Kostenlos registrieren</a>
+        {% endif %}
+      </div>
+    </nav>
+  </div>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap">
+    <div>© 2026 {{ product }}. Alle Rechte vorbehalten.</div>
+    <div style="max-width:560px; text-align:right">
+      Risikohinweis: Der Handel mit gehebelten Produkten (CFDs) birgt ein hohes Risiko.
+      Vergangene Ergebnisse sind keine Garantie fuer zukuenftige Resultate. Keine Anlageberatung.
+    </div>
+  </div>
+</footer>
+</body>
+</html>

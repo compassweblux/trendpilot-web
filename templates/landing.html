@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}{{ product }} — Automatisierter US100 Daytrading-Bot{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section style="padding-top:76px; padding-bottom:60px; position:relative; overflow:hidden">
+  <div style="position:absolute; top:-160px; right:-120px; width:520px; height:520px;
+    background:radial-gradient(circle,var(--glow),transparent 68%); filter:blur(20px); pointer-events:none"></div>
+  <div class="wrap" style="position:relative">
+    <div style="max-width:720px">
+      <span class="eyebrow">Automatisierter Handel · MetaTrader 5</span>
+      <h1 style="margin:16px 0 20px">Der US100 tradet.<br><span class="grad">Dein Bot auch.</span></h1>
+      <p class="lead">Eine regelbasierte Trend-Pullback-Strategie für den Nasdaq-100 —
+      vollautomatisch auf deinem MetaTrader 5. Getestet, transparent, in Minuten installiert.
+      Du behältst die volle Kontrolle über dein Konto.</p>
+      <div style="display:flex; gap:14px; margin-top:30px; flex-wrap:wrap">
+        <a href="/register" class="btn btn-primary btn-lg">Jetzt Konto erstellen →</a>
+        <a href="#funktionen" class="btn btn-ghost btn-lg">So funktioniert's</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b class="grad">M5 / M15</b><span>Timeframes</span></div>
+        <div class="stat"><b class="grad">100 %</b><span>regelbasiert</span></div>
+        <div class="stat"><b class="grad">&lt;5 Min</b><span>Installation</span></div>
+        <div class="stat"><b class="grad">24/5</b><span>läuft mit dem Markt</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS / TRUST -->
+<div class="wrap">
+  <div class="card" style="display:flex; gap:28px; align-items:center; justify-content:center; flex-wrap:wrap; color:var(--mut); font-weight:700; font-size:15px">
+    <span>⚡ MetaTrader 5</span><span>·</span><span>📈 Nasdaq-100 (US100)</span><span>·</span>
+    <span>🖥️ Windows Desktop-App</span><span>·</span><span>🔒 Konto-geschützt</span>
+  </div>
+</div>
+
+<!-- FUNKTIONEN -->
+<section id="funktionen">
+  <div class="wrap">
+    <div style="text-align:center; margin-bottom:52px">
+      <span class="eyebrow">Funktionen</span>
+      <h2 style="margin-top:12px">Alles, was ein ernsthafter Trading-Bot braucht</h2>
+    </div>
+    <div class="grid g3">
+      <div class="card feat"><div class="ic">🎯</div><h3>Trend-Pullback-Strategie</h3>
+        <p>M15-Trendfilter (EMA 50/200 + ADX), präziser M5-Einstieg auf den Rücksetzer zur EMA21. Nur Trades mit dem Trend.</p></div>
+      <div class="card feat"><div class="ic">🛡️</div><h3>Striktes Risikomanagement</h3>
+        <p>Fixes Risiko pro Trade oder prozentuales Sizing, harte Obergrenze, ATR-basierte Stops und Zwei-Stufen-Ausstieg mit Trailing.</p></div>
+      <div class="card feat"><div class="ic">🖥️</div><h3>Native Desktop-App</h3>
+        <p>Modernes Dashboard mit Live-Chart, Konto-Übersicht und Setup-Nähe-Anzeige. Startet MetaTrader automatisch im Hintergrund.</p></div>
+      <div class="card feat"><div class="ic">⏱️</div><h3>Daytrading-Frequenz</h3>
+        <p>Auf aktive Handelszeiten optimiert — mehrere Setups pro Handelstag statt einmal pro Woche. Automatischer Flat vor Handelsschluss.</p></div>
+      <div class="card feat"><div class="ic">🔐</div><h3>Dein Konto bleibt deins</h3>
+        <p>Der Bot läuft lokal auf deinem Rechner mit deinen MT5-Zugangsdaten. Wir haben zu keinem Zeitpunkt Zugriff auf dein Geld.</p></div>
+      <div class="card feat"><div class="ic">🔄</div><h3>1-Klick-Installation</h3>
+        <p>Ein Setup installiert Python, MetaTrader und alle Pakete automatisch und legt dir eine Desktop-Verknüpfung an.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SO FUNKTIONIERT'S -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="card" style="padding:40px">
+      <div style="text-align:center; margin-bottom:34px">
+        <span class="eyebrow">In 3 Schritten startklar</span>
+      </div>
+      <div class="grid g3">
+        <div class="feat"><div class="ic">1️⃣</div><h3>Konto erstellen</h3>
+          <p>Registriere dich kostenlos. Du erhältst sofort deine persönliche Kundennummer und Zugriff auf den Download.</p></div>
+        <div class="feat"><div class="ic">2️⃣</div><h3>Auf deinem VPS installieren</h3>
+          <p>Installiere TrendPilot auf deinem eigenen <b>Windows-VPS</b>, damit er rund um die Uhr handelt — auch wenn dein PC aus ist. MT5-Zugangsdaten und Kundennummer eintragen.</p></div>
+        <div class="feat"><div class="ic">3️⃣</div><h3>Abo aktivieren &amp; traden</h3>
+          <p>Mit aktivem Abo schaltet sich der Bot frei und handelt automatisch nach der Strategie — du überwachst nur noch.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PREISE -->
+<section id="preise" style="padding-top:20px">
+  <div class="wrap">
+    <div style="text-align:center; margin-bottom:52px">
+      <span class="eyebrow">Preise</span>
+      <h2 style="margin-top:12px">Ein Abo. Voller Zugriff.</h2>
+      <p class="lead" style="margin:14px auto 0">Jederzeit kündbar. Kein Zugriff auf dein Handelskonto. Der Bot läuft, solange dein Abo aktiv ist.</p>
+    </div>
+    <div class="price-grid">
+      <div class="card plan">
+        <div class="pname">Monatlich</div>
+        <div class="amt">149,97&nbsp;€<span>/Monat</span></div>
+        <p style="color:var(--mut); font-size:14px">Flexibel starten und testen.</p>
+        <ul>
+          <li><span class="chk">✓</span><b>Voller Bot-Zugriff</b></li>
+          <li><span class="chk">✓</span>Desktop-Dashboard &amp; Updates</li>
+          <li><span class="chk">✓</span>Alle Strategie-Einstellungen</li>
+          <li><span class="chk">✓</span>Monatlich kündbar</li>
+        </ul>
+        <a href="/register" class="btn btn-ghost btn-block">Loslegen</a>
+      </div>
+
+      <div class="card plan feature">
+        <span class="tag">BELIEBT · Spare 20 %</span>
+        <div class="pname">Jährlich</div>
+        <div class="amt">119,98&nbsp;€<span>/Monat</span></div>
+        <p style="color:var(--mut); font-size:14px">1.439,76&nbsp;€ jährlich — spare 359,88&nbsp;€.</p>
+        <ul>
+          <li><span class="chk">✓</span><b>Alles aus Monatlich</b></li>
+          <li><span class="chk">✓</span><b>20 % günstiger — 359,88 € gespart</b></li>
+          <li><span class="chk">✓</span>Prioritäts-Support</li>
+          <li><span class="chk">✓</span>Früher Zugriff auf neue Features</li>
+        </ul>
+        <a href="/register" class="btn btn-primary btn-block">Jahresabo wählen</a>
+      </div>
+
+      <div class="card plan">
+        <div class="pname">Lifetime</div>
+        <div class="amt">4.999,99&nbsp;€<span>/einmalig</span></div>
+        <p style="color:var(--mut); font-size:14px">Einmal zahlen, dauerhaft nutzen.</p>
+        <ul>
+          <li><span class="chk">✓</span><b>Lebenslanger Zugriff</b></li>
+          <li><span class="chk">✓</span>Alle zukünftigen Updates</li>
+          <li><span class="chk">✓</span>Prioritäts-Support</li>
+          <li><span class="chk">✓</span>Keine laufenden Kosten</li>
+        </ul>
+        <a href="/register" class="btn btn-ghost btn-block">Lifetime sichern</a>
+      </div>
+    </div>
+    <p style="text-align:center; color:var(--mut2); font-size:13px; margin-top:22px">
+      Preise inkl. gesetzlicher MwSt. · Zahlung wird im nächsten Schritt eingerichtet.
+    </p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="card" style="text-align:center; padding:56px 30px;
+      background:linear-gradient(135deg,#0f1c14,var(--card)); border-color:var(--green)">
+      <h2>Bereit, den US100 automatisch zu traden?</h2>
+      <p class="lead" style="margin:14px auto 26px">Erstelle in unter einer Minute dein kostenloses Konto und lade den Bot direkt herunter.</p>
+      <a href="/register" class="btn btn-primary btn-lg">Kostenloses Konto erstellen →</a>
+      <p class="disclaimer" style="margin-top:26px">
+        Der Handel mit Finanzinstrumenten ist mit erheblichen Risiken verbunden und kann zum
+        Verlust des eingesetzten Kapitals führen. Dieses Produkt stellt keine Anlageberatung dar.
+      </p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

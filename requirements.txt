@@ -1,0 +1,8 @@
+# Abhaengigkeiten der Verkaufs-Website (FastAPI)
+fastapi>=0.110
+uvicorn>=0.29
+jinja2>=3.1
+python-multipart>=0.0.9    # Formular-Parsing (Registrierung/Login)
+itsdangerous>=2.1          # signierte Session-Cookies
+psycopg[binary]>=3.1       # Neon-Postgres
+python-dotenv>=1.0         # DATABASE_URL aus .env

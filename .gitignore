@@ -1,0 +1,6 @@
+.env
+.session_secret
+__pycache__/
+*.pyc
+.vercel/
+downloads/
